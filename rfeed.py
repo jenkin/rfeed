@@ -52,6 +52,9 @@ class Serializable:
 		if date is None:
 			return None
 
+		if isinstance(date, basestring):
+			return date
+
 		return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][date.weekday()], date.day,
 			["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][date.month-1], date.year, date.hour, date.minute, date.second)
 
@@ -548,10 +551,14 @@ class Item(Host):
 		self.author = author
 		self.creator = creator
 		self.comments = comments
-		self.enclosure = enclosure
 		self.guid = guid
 		self.pubDate = pubDate
 		self.source = source
+
+		self.enclosure = [] if enclosure is None else enclosure
+
+		if isinstance(self.enclosure, Enclosure):
+			self.enclosure = [self.enclosure]
 
 		self.categories = [] if categories is None else categories
 
@@ -578,8 +585,9 @@ class Item(Host):
 				category = Category(category)
 			category.publish(self.handler)
 
-		if self.enclosure is not None:
-			self.enclosure.publish(self.handler)
+		for enclosure in self.enclosure:
+			if enclosure is not None:
+				enclosure.publish(self.handler)
 
 		if self.guid is not None:
 			self.guid.publish(self.handler)
